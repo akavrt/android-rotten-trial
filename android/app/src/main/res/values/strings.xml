@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Upcoming movies</string>
+    <string name="app_name">Rotten Tomatoes</string>
+    <string name="toolbar_title">Upcoming movies</string>
+    <string name="toolbar_subtitle">by Rotten Tomatoes</string>
 </resources>
