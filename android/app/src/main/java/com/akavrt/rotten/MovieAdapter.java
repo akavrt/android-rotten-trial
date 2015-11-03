@@ -3,10 +3,13 @@ package com.akavrt.rotten;
 import android.content.Context;
 import android.support.annotation.DrawableRes;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.ms.square.android.expandabletextview.ExpandableTextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +17,34 @@ import java.util.List;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemViewHolder> {
     private final LayoutInflater mInflater;
     private final List<Movie> mMovies;
+    private final SparseBooleanArray mCollapsedStatus;
 
     public MovieAdapter(Context context, MovieList list) {
         this.mInflater = LayoutInflater.from(context);
+        this.mCollapsedStatus = new SparseBooleanArray();
 
         mMovies = new ArrayList<>();
         mMovies.addAll(list.movies);
+
     }
 
     public void addMovie(Movie movie) {
+        int currentSize = mCollapsedStatus.size();
+        SparseBooleanArray holder = new SparseBooleanArray(currentSize + 1);
+        for (int i = 0; i < currentSize; i++) {
+            int position = mCollapsedStatus.keyAt(i);
+            boolean collapsed = mCollapsedStatus.valueAt(i);
+
+            holder.put(position + 1, collapsed);
+        }
+
+        holder.put(0, true);
+
+        mCollapsedStatus.clear();
+        for (int i = 0; i < holder.size(); i++) {
+            mCollapsedStatus.append(holder.keyAt(i), holder.valueAt(i));
+        }
+
         mMovies.add(0, movie);
         notifyItemInserted(0);
     }
@@ -36,7 +58,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemVie
     @Override
     public void onBindViewHolder(MovieItemViewHolder holder, int position) {
         Movie movie = mMovies.get(position);
-        holder.bind(movie);
+        holder.bind(movie, mCollapsedStatus, position);
     }
 
     @Override
@@ -51,7 +73,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemVie
         private TextView mCriticsRatingText;
         private TextView mAudienceRatingText;
         private TextView mCastText;
-        private TextView mSynopsisText;
+        private ExpandableTextView mSynopsisText;
 
         public MovieItemViewHolder(View itemView) {
             super(itemView);
@@ -62,10 +84,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemVie
             mCriticsRatingText = (TextView) itemView.findViewById(R.id.critics_rating);
             mAudienceRatingText = (TextView) itemView.findViewById(R.id.audience_rating);
             mCastText = (TextView) itemView.findViewById(R.id.cast);
-            mSynopsisText = (TextView) itemView.findViewById(R.id.synopsis);
+            mSynopsisText = (ExpandableTextView) itemView.findViewById(R.id.synopsis);
         }
 
-        public void bind(Movie movie) {
+        public void bind(Movie movie, SparseBooleanArray collapsedStatus, int position) {
             mTitleText.setText(movie.title);
             mYearText.setText(Integer.toString(movie.year));
 
@@ -78,7 +100,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemVie
                 mCastText.setVisibility(View.GONE);
             }
 
-            mSynopsisText.setText(movie.synopsis);
+            mSynopsisText.setText(movie.synopsis, collapsedStatus, position);
         }
 
         private static boolean hasCast(Movie movie) {
