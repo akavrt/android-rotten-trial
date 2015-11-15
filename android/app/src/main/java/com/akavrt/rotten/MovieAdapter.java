@@ -14,51 +14,83 @@ import com.ms.square.android.expandabletextview.ExpandableTextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemViewHolder> {
+public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int VIEW_TYPE_HEADER = 0;
+    private static final int VIEW_TYPE_MOVIE = 1;
+
     private final LayoutInflater mInflater;
     private final List<Movie> mMovies;
     private final SparseBooleanArray mCollapsedStatus;
 
-    public MovieAdapter(Context context, MovieList list) {
+    private boolean mUseHeader;
+
+    public MovieAdapter(Context context, MovieList list, boolean useHeader) {
         this.mInflater = LayoutInflater.from(context);
         this.mCollapsedStatus = new SparseBooleanArray();
 
-        mMovies = new ArrayList<>();
-        mMovies.addAll(list.movies);
+        this.mUseHeader = useHeader;
 
+        mMovies = new ArrayList<>();
+        if (mUseHeader) {
+            mMovies.add(null);
+        }
+        mMovies.addAll(list.movies);
     }
 
     public void addMovie(Movie movie) {
-        int currentSize = mCollapsedStatus.size();
+        int firstDataItemIndex = mUseHeader ? 1 : 0;
+
+        sanitizeItemCollapsedStatus(mCollapsedStatus, firstDataItemIndex);
+        mMovies.add(firstDataItemIndex, movie);
+
+        notifyItemInserted(firstDataItemIndex);
+    }
+
+    private static void sanitizeItemCollapsedStatus(SparseBooleanArray collapsedStatus, int firstDataItemIndex) {
+        int currentSize = collapsedStatus.size();
         SparseBooleanArray holder = new SparseBooleanArray(currentSize + 1);
         for (int i = 0; i < currentSize; i++) {
-            int position = mCollapsedStatus.keyAt(i);
-            boolean collapsed = mCollapsedStatus.valueAt(i);
+            int position = collapsedStatus.keyAt(i);
+            boolean collapsed = collapsedStatus.valueAt(i);
 
             holder.put(position + 1, collapsed);
         }
 
-        holder.put(0, true);
+        holder.put(firstDataItemIndex, true);
 
-        mCollapsedStatus.clear();
+        collapsedStatus.clear();
         for (int i = 0; i < holder.size(); i++) {
-            mCollapsedStatus.append(holder.keyAt(i), holder.valueAt(i));
+            collapsedStatus.append(holder.keyAt(i), holder.valueAt(i));
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return mUseHeader && position == 0
+                ? VIEW_TYPE_HEADER
+                : VIEW_TYPE_MOVIE;
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RecyclerView.ViewHolder holder;
+        if (viewType == VIEW_TYPE_HEADER) {
+            View itemView = mInflater.inflate(R.layout.header, parent, false);
+            holder = new HeaderViewHolder(itemView);
+        } else {
+            View itemView = mInflater.inflate(R.layout.movie_item, parent, false);
+            holder = new MovieItemViewHolder(itemView);
         }
 
-        mMovies.add(0, movie);
-        notifyItemInserted(0);
+        return holder;
     }
 
     @Override
-    public MovieItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = mInflater.inflate(R.layout.movie_item, parent, false);
-        return new MovieItemViewHolder(itemView);
-    }
-
-    @Override
-    public void onBindViewHolder(MovieItemViewHolder holder, int position) {
-        Movie movie = mMovies.get(position);
-        holder.bind(movie, mCollapsedStatus, position);
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (getItemViewType(position) == VIEW_TYPE_MOVIE) {
+            Movie movie = mMovies.get(position);
+            ((MovieItemViewHolder) holder).bind(movie, mCollapsedStatus, position);
+        }
     }
 
     @Override
@@ -160,6 +192,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieItemVie
             }
 
             return builder.toString();
+        }
+    }
+
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
+
+        public HeaderViewHolder(View itemView) {
+            super(itemView);
         }
     }
 }

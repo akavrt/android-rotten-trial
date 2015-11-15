@@ -33,7 +33,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupViews() {
-        setupToolbar();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        boolean isToolbarAvailable = toolbar != null;
+
+        if (isToolbarAvailable) {
+            setupToolbar(toolbar);
+        }
 
         mRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_to_refresh);
         mRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
@@ -58,12 +63,11 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(mLayoutManager);
 
         MovieList list = Utils.createSampleMovieList();
-        mAdapter = new MovieAdapter(this, list);
+        mAdapter = new MovieAdapter(this, list, !isToolbarAvailable);
         recyclerView.setAdapter(mAdapter);
     }
 
-    private void setupToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    private void setupToolbar(Toolbar toolbar) {
         setSupportActionBar(toolbar);
 
         setTitle(R.string.toolbar_title);

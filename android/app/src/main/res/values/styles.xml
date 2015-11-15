@@ -9,16 +9,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+
     <!-- Chooser styling -->
     <style name="ToolbarTheme" parent="Theme.AppCompat">
         <item name="toolbarStyle">@style/ToolbarStyle</item>
     </style>
 
     <style name="ToolbarStyle" parent="@style/Widget.AppCompat.Toolbar">
-        <item name="android:titleTextAppearance">@style/ToolbarTitleTextAppearance</item>
-        <item name="android:subtitleTextAppearance">@style/ToolbarSubtitleTextAppearance</item>
-
-        <!-- Support library compatibility -->
         <item name="titleTextAppearance">@style/ToolbarTitleTextAppearance</item>
         <item name="subtitleTextAppearance">@style/ToolbarSubtitleTextAppearance</item>
     </style>
